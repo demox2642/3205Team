@@ -3,6 +3,6 @@
     <string name="loading">Загрузка</string>
     <string name="avatar">Аватар</string>
     <string name="repository_title">Репозитории</string>
-    <string name = "search_edit_title">Введите имя пользователя и нажмитекнопку поиска</string>
+    <string name = "search_edit_title">Поиск</string>
     <string name="search">Поиск</string>
 </resources>

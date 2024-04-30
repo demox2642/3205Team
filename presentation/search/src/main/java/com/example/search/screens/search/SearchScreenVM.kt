@@ -22,33 +22,41 @@ class SearchScreenVM
     @Inject
     constructor(
         private val getUsersRepositoryUseCase: GetUsersRepositoryUseCase,
-        private val dounloadingRepositoryUseCase: DounloadingRepositoryUseCase
+        private val dounloadingRepositoryUseCase: DounloadingRepositoryUseCase,
     ) : ViewModel() {
         private val _userRepositoryList = MutableStateFlow<PagingData<UserRepository>>(PagingData.empty())
         val userRepositoryList = _userRepositoryList.asStateFlow()
-    
+
         private val _searchText = MutableStateFlow("")
-    val searchText = _searchText.asStateFlow()
+        val searchText = _searchText.asStateFlow()
+        private val _loadingState = MutableStateFlow(false)
+        val loadingState = _loadingState.asStateFlow()
 
-
-
-    fun changeSearchText(text: String){
-        _searchText.value = text
-    }
-
-    fun search(){
-        viewModelScope.launch(Dispatchers.IO) {
-            getUsersRepositoryUseCase.getUserRepository(searchText = _searchText.value)
-                .cachedIn(viewModelScope)
-                .collectLatest {
-                    _userRepositoryList.value = it
-                }
+        fun changeSearchText(text: String) {
+            _searchText.value = text
         }
-    }
 
-    fun dounloadingRepository(user: User, repository: Repository){
-        viewModelScope.launch(Dispatchers.IO) {
-            dounloadingRepositoryUseCase.downloadRepository(user, repository)
+        fun changeLoadingState() {
+            _loadingState.value = false
         }
-    }
+
+        fun search() {
+            _loadingState.value = true
+            viewModelScope.launch(Dispatchers.IO) {
+                getUsersRepositoryUseCase.getUserRepository(searchText = _searchText.value)
+                    .cachedIn(viewModelScope)
+                    .collectLatest {
+                        _userRepositoryList.value = it
+                    }
+            }
+        }
+
+        fun dounloadingRepository(
+            user: User,
+            repository: Repository,
+        ) {
+            viewModelScope.launch(Dispatchers.IO) {
+                dounloadingRepositoryUseCase.downloadRepository(user, repository)
+            }
+        }
     }

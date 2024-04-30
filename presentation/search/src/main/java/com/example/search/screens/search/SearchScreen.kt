@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,7 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,12 +55,18 @@ fun SearchScreen(navController: NavController) {
     val vm: SearchScreenVM = hiltViewModel()
     val userRepositoryList = vm.userRepositoryList.collectAsLazyPagingItems()
     val searchText by vm.searchText.collectAsState()
+    val loadState by vm.loadingState.collectAsState()
+
+    if (userRepositoryList.loadState.prepend.endOfPaginationReached) {
+        vm.changeLoadingState()
+    }
     SearchScreenContent(
         userRepositoryList = userRepositoryList,
         download = vm::dounloadingRepository,
         searchText = searchText,
         changeSearchText = vm::changeSearchText,
         search = vm::search,
+        loadState = loadState,
     )
 }
 
@@ -70,7 +77,9 @@ fun SearchScreenContent(
     searchText: String,
     changeSearchText: (String) -> Unit,
     search: () -> Unit,
+    loadState: Boolean,
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     Scaffold(
         topBar = {
             TextField(
@@ -78,8 +87,19 @@ fun SearchScreenContent(
                 onValueChange = { text ->
                     changeSearchText(text)
                 },
+                placeholder = { Text(text = stringResource(R.string.search_edit_title)) },
+                colors =
+                    TextFieldDefaults.textFieldColors(
+                        textColor = AppTheme.colors.systemTextPrimary,
+                        disabledPlaceholderColor = AppTheme.colors.systemTextSecondary,
+                    ),
+                maxLines = 1,
+                textStyle = AppTheme.typography.body0,
                 leadingIcon = {
-                    IconButton(onClick = { search()}) {
+                    IconButton(onClick = {
+                        keyboardController?.hide()
+                        search()
+                    }) {
                         Icon(
                             imageVector = Icons.Rounded.Search,
                             tint = AppTheme.colors.colorGraphIndigo,
@@ -89,7 +109,7 @@ fun SearchScreenContent(
                 },
                 trailingIcon = {
                     if (searchText.isNotEmpty()) {
-                        IconButton(onClick = { changeSearchText("")}) {
+                        IconButton(onClick = { changeSearchText("") }) {
                             Icon(
                                 imageVector = Icons.Rounded.Clear,
                                 tint = AppTheme.colors.colorGraphIndigo,
@@ -98,27 +118,26 @@ fun SearchScreenContent(
                         }
                     }
                 },
-                maxLines = 1,
-                colors = TextFieldDefaults.textFieldColors(backgroundColor = AppTheme.colors.systemBackgroundSecondary),
-                placeholder = {
-                    Text(text = stringResource(R.string.search_edit_title))
-                              },
-                textStyle = AppTheme.typography.body0,
-                singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    Modifier.fillMaxWidth()
+                        .padding(16.dp),
             )
         },
         backgroundColor = AppTheme.colors.systemBackgroundPrimary,
     ) { paddingValues ->
+
         Column(modifier = Modifier.padding(paddingValues)) {
-            LazyColumn {
-                items(userRepositoryList.itemCount) { count ->
-                    userRepositoryList[count]?.let {
-                        UserRepositoryListItem(userRepository = it, download = download)
+            if (loadState) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn {
+                    items(userRepositoryList.itemCount) { count ->
+                        userRepositoryList[count]?.let {
+                            UserRepositoryListItem(userRepository = it, download = download)
+                        }
                     }
                 }
             }

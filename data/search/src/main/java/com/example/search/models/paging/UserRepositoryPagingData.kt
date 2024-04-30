@@ -1,6 +1,7 @@
 package com.example.search.models.paging
 
 import android.util.Log
+import androidx.paging.LoadState
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.search.api.SearchApi
@@ -40,6 +41,7 @@ class UserRepositoryPagingData(
             }
         } catch (e: Exception) {
             Log.e(this.toString(), "load fun ERROR:${e.message}")
+            LoadState.Error(e)
         }
 
         val nextKey = if (userRepositoryList.size < loadSize && page < maxPage) null else page + 1
