@@ -1,7 +1,7 @@
 package com.example.database.db.conteins
 
-object UserConteins {
-    const val TABLE_NAME = "user"
+object CacheUserConteins {
+    const val TABLE_NAME = "cache_user"
 
     object Colums {
         const val ID = "id"

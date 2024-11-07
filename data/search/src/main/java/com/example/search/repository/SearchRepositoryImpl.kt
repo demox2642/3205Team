@@ -13,6 +13,8 @@ import com.example.search.models.Repository
 import com.example.search.models.User
 import com.example.search.models.UserRepository
 import com.example.search.models.paging.UserRepositoryPagingData
+import com.example.search.models.toCacheRepositoryDB
+import com.example.search.models.toCacheUserDB
 import com.example.search.models.toRepositoryDB
 import com.example.search.models.toUserDB
 import kotlinx.coroutines.Dispatchers
@@ -29,22 +31,23 @@ class SearchRepositoryImpl
     ) : SearchRepository {
         private val downloadManager = context.getSystemService(DownloadManager::class.java)
 
-        override suspend fun getUserRepository(searchText: String): Flow<PagingData<UserRepository>> {
-            return Pager(
+        override suspend fun getUserRepository(searchText: String, errorText: (String)->Unit): Flow<PagingData<UserRepository>> =
+            Pager(
                 config =
                     PagingConfig(
                         pageSize = 5,
                         enablePlaceholders = false,
+                        initialLoadSize = 1,
                     ),
                 pagingSourceFactory = {
                     UserRepositoryPagingData(
                         searchApi = searchApi,
                         searchText = searchText,
+                        errorText = errorText
                     )
                 },
             ).flow
                 .flowOn(Dispatchers.IO)
-        }
 
         override suspend fun downloadRepository(
             user: User,
@@ -53,7 +56,8 @@ class SearchRepositoryImpl
             val url = "${repository.htmlUrl}/archive/refs/heads/${repository.defaultBranch}.zip"
 
             val request =
-                DownloadManager.Request(url.toUri())
+                DownloadManager
+                    .Request(url.toUri())
                     .setMimeType("application/zip")
                     .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE)
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
@@ -63,11 +67,11 @@ class SearchRepositoryImpl
             return downloadManager.enqueue(request)
         }
 
-        private fun saveLoadRepository(
-            user: User,
-            repository: Repository,
-        ) {
-            dataBase.userDao().saveUser(user.toUserDB())
-            dataBase.repositoryDao().saveRepository(repository.toRepositoryDB(user.id))
-        }
+    private fun saveLoadRepository(
+        user: User,
+        repository: Repository,
+    ) {
+        dataBase.cacheUserDao().saveUser(user.toCacheUserDB())
+        dataBase.cacheRepositoryDao().saveRepository(repository.toCacheRepositoryDB(user.id))
+    }
     }

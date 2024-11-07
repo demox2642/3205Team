@@ -7,7 +7,7 @@ import com.example.search.models.UserRepository
 import kotlinx.coroutines.flow.Flow
 
 interface SearchRepository {
-    suspend fun getUserRepository(searchText: String): Flow<PagingData<UserRepository>>
+    suspend fun getUserRepository(searchText: String, errorText: (String)->Unit): Flow<PagingData<UserRepository>>
 
     suspend fun downloadRepository(
         user: User,

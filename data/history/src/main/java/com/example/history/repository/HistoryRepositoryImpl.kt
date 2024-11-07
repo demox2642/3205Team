@@ -16,7 +16,7 @@ class HistoryRepositoryImpl
     ) : HistoryRepository {
         override suspend fun getHistory(): Flow<List<HistoryUserRepo>> =
             flow {
-                val dataList = dataBase.userDao().getUsersRepository()
+                val dataList = dataBase.cacheUserDao().getUsersRepository()
                 val result = mutableListOf<HistoryUserRepo>()
                 dataList.forEach {
                     result += it.toHistoryUserRepo()

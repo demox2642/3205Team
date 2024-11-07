@@ -1,3 +1,4 @@
+@Suppress("ktlint:standard:property-naming")
 object Versions {
     const val kotlin = "1.9.0"
     const val compose = "1.6.6"
@@ -16,6 +17,6 @@ object Versions {
     const val viewModelKtxVersion = "2.3.1"
     const val kotlinCoroutines = "1.6.4"
     const val pagingVersion = "3.0.1"
-    const val room = "2.4.2"
+    const val room = "2.6.1"
     const val plugin_serialization = "1.6.21"
 }

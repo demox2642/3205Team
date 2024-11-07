@@ -11,6 +11,7 @@ import com.example.search.models.server_response.toUserRepository
 class UserRepositoryPagingData(
     private val searchApi: SearchApi,
     private val searchText: String,
+    private val errorText: (String)->Unit
 ) : PagingSource<Int, UserRepository>() {
     override fun getRefreshKey(state: PagingState<Int, UserRepository>): Int? {
         val anchorPosition = state.anchorPosition ?: return null
@@ -32,7 +33,7 @@ class UserRepositoryPagingData(
                     pageSize = loadSize,
                     pageNum = page,
                 ).items
-            println("usersList = $usersList")
+
             usersList.forEach { user ->
                 val repositoryList = searchApi.getRepository(user.login)
                 if (repositoryList.filter { it.size > 1 }.isNotEmpty()) {
@@ -40,8 +41,7 @@ class UserRepositoryPagingData(
                 }
             }
         } catch (e: Exception) {
-            Log.e(this.toString(), "load fun ERROR:${e.message}")
-            LoadState.Error(e)
+             errorText("ERROR:${e.message}")
         }
 
         val nextKey = if (userRepositoryList.size < loadSize && page < maxPage) null else page + 1

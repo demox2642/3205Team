@@ -17,11 +17,13 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-    ): Database {
-        return Room.databaseBuilder(
-            context,
-            Database::class.java,
-            "database",
-        ).build()
-    }
+    ): Database =
+        Room
+            .databaseBuilder(
+                context,
+                Database::class.java,
+                "database",
+            ).fallbackToDestructiveMigration()
+            .allowMainThreadQueries()
+            .build()
 }

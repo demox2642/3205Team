@@ -88,4 +88,5 @@ dependencies {
     implementation(Room.roomKTX)
     implementation(Room.roomPaging)
     kapt(Room.roomCompiler)
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

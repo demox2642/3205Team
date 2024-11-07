@@ -22,11 +22,9 @@ class HistoryScreenVM
         private val _historyList = MutableStateFlow<List<HistoryUserRepo>>(emptyList())
         val historyList = _historyList.asStateFlow()
 
-        init {
-
+       fun loadData(){
             viewModelScope.launch(Dispatchers.IO) {
                 getSavedRepository.getHistory().collectLatest {
-                    Log.e("History", "list = $it")
                     _historyList.value = it
                 }
             }

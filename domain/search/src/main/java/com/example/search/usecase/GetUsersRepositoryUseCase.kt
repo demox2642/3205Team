@@ -6,7 +6,7 @@ import com.example.search.repository.SearchRepository
 import kotlinx.coroutines.flow.Flow
 
 class GetUsersRepositoryUseCase(private val repository: SearchRepository) {
-    suspend fun getUserRepository(searchText: String): Flow<PagingData<UserRepository>> {
-        return repository.getUserRepository(searchText)
+    suspend fun getUserRepository(searchText: String, errorText: (String)->Unit): Flow<PagingData<UserRepository>> {
+        return repository.getUserRepository(searchText, errorText)
     }
 }

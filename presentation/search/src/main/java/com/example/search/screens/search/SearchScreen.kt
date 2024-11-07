@@ -1,5 +1,6 @@
 package com.example.search.screens.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.presentation.base_ui.dialogs.AlertDialog
 import com.example.presentation.base_ui.theme.AppTheme
 import com.example.presentation.search.R
 import com.example.search.models.Repository
@@ -50,16 +51,15 @@ import com.example.search.models.User
 import com.example.search.models.UserRepository
 import com.skydoves.landscapist.glide.GlideImage
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SearchScreen(navController: NavController) {
     val vm: SearchScreenVM = hiltViewModel()
     val userRepositoryList = vm.userRepositoryList.collectAsLazyPagingItems()
     val searchText by vm.searchText.collectAsState()
-    val loadState by vm.loadingState.collectAsState()
+    val loadState by vm.loadState.collectAsState()
+    val errorText by vm.errorText.collectAsState()
 
-    if (userRepositoryList.loadState.prepend.endOfPaginationReached) {
-        vm.changeLoadingState()
-    }
     SearchScreenContent(
         userRepositoryList = userRepositoryList,
         download = vm::dounloadingRepository,
@@ -67,9 +67,12 @@ fun SearchScreen(navController: NavController) {
         changeSearchText = vm::changeSearchText,
         search = vm::search,
         loadState = loadState,
+        errorText = errorText,
+        closeDialog = vm::cleanError
     )
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SearchScreenContent(
     userRepositoryList: LazyPagingItems<UserRepository>,
@@ -78,6 +81,8 @@ fun SearchScreenContent(
     changeSearchText: (String) -> Unit,
     search: () -> Unit,
     loadState: Boolean,
+    errorText: String,
+    closeDialog: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Scaffold(
@@ -87,7 +92,7 @@ fun SearchScreenContent(
                 onValueChange = { text ->
                     changeSearchText(text)
                 },
-                placeholder = { Text(text = stringResource(R.string.search_edit_title)) },
+                placeholder = { Text(text = stringResource(R.string.search_edit_title), color = AppTheme.colors.systemTextPrimary) },
                 colors =
                     TextFieldDefaults.textFieldColors(
                         textColor = AppTheme.colors.systemTextPrimary,
@@ -95,18 +100,6 @@ fun SearchScreenContent(
                     ),
                 maxLines = 1,
                 textStyle = AppTheme.typography.body0,
-                leadingIcon = {
-                    IconButton(onClick = {
-                        keyboardController?.hide()
-                        search()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Rounded.Search,
-                            tint = AppTheme.colors.colorGraphIndigo,
-                            contentDescription = "Search icon",
-                        )
-                    }
-                },
                 trailingIcon = {
                     if (searchText.isNotEmpty()) {
                         IconButton(onClick = { changeSearchText("") }) {
@@ -120,31 +113,53 @@ fun SearchScreenContent(
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 modifier =
-                    Modifier.fillMaxWidth()
-                        .padding(16.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(AppTheme.colors.systemBackgroundTertiary)
             )
         },
         backgroundColor = AppTheme.colors.systemBackgroundPrimary,
     ) { paddingValues ->
 
         Column(modifier = Modifier.padding(paddingValues)) {
-            if (loadState) {
+
+            if (errorText.isNotEmpty()){
+                AlertDialog(
+                    title = "Error",
+                    message = errorText,
+                    closeDialog = closeDialog
+                )
+            }
+
+            if (loadState){
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-            } else {
-                LazyColumn {
-                    items(userRepositoryList.itemCount) { count ->
-                        userRepositoryList[count]?.let {
-                            UserRepositoryListItem(userRepository = it, download = download)
+            } else{
+                    if (userRepositoryList.itemSnapshotList.isEmpty()){
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(text = "Для поиска начните вводить имя пользователя git", color = AppTheme.colors.systemTextPrimary)
+                        }
+                    }else {
+                        LazyColumn {
+                            items(userRepositoryList.itemCount) { count ->
+                                userRepositoryList[count]?.let {
+                                    UserRepositoryListItem(userRepository = it, download = download)
+                                }
+                            }
                         }
                     }
-                }
             }
+
+
         }
+
+
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun RepositoryListItem(
     repository: Repository,
@@ -182,6 +197,7 @@ fun RepositoryListItem(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun UserRepositoryListItem(
     userRepository: UserRepository,
@@ -243,6 +259,7 @@ fun UserRepositoryListItem(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Preview(showBackground = true)
 @Composable
 fun UserRepositoryListItemPreview() {

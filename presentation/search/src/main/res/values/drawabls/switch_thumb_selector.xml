@@ -1,0 +1,5 @@
+<selector
+    xmlns:android="file:///Users/antongorodetskii/Library/Android/sdk/sources/android-34/audio_policy_configuration_V7_0.xsd">
+    <item android:drawable="@drawable/ic_tumb_on_intro" android:state_checked="true" />
+        <item android:drawable="@drawable/ic_tumb_of_intro" android:state_checked="false" />
+</selector>

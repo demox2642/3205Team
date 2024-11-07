@@ -1,8 +1,8 @@
 package com.example.history.models
 
-import com.example.database.db.models.UserRepositoryDB
+import com.example.database.db.models.CacheUserRepositoryDB
 
-fun UserRepositoryDB.toHistoryUserRepo(): List<HistoryUserRepo> {
+fun CacheUserRepositoryDB.toHistoryUserRepo(): List<HistoryUserRepo> {
     val historyUserRepoList = mutableListOf<HistoryUserRepo>()
     this.repository.forEach { repo ->
         historyUserRepoList.add(

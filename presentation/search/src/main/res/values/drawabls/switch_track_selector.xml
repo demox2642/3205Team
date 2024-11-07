@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://schemas.android.com/apk/res/android "
+    xmlns:android="file:///Users/antongorodetskii/Library/Android/sdk/sources/android-34/audio_policy_configuration_V7_0.xsd">
+    <item android:drawable="@drawable/ic_swich_on_intro" android:state_checked="true" />
+    <item android:drawable="@drawable/ic_swich_of_intro" android:state_checked="false" />
+</selector>
